@@ -5,6 +5,14 @@ from pathlib import Path
 import json
 import io
 import textwrap
+# Hide Streamlit branding and menu
+hide_streamlit_style = """
+    <style>
+    #MainMenu {visibility: hidden;}  /* hides the hamburger menu */
+    footer {visibility: hidden;}    /* hides the "Made with Streamlit" footer */
+    </style>
+"""
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
 # Page config
 st.set_page_config(
@@ -13,13 +21,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
-
-hide_footer = """
-    <style>
-    footer {visibility: hidden;}
-    </style>
-"""
-st.markdown(hide_footer, unsafe_allow_html=True)
 
 # Custom CSS
 st.markdown("""
