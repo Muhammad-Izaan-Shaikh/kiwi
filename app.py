@@ -14,6 +14,13 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+hide_footer = """
+    <style>
+    footer {visibility: hidden;}
+    </style>
+"""
+st.markdown(hide_footer, unsafe_allow_html=True)
+
 # Custom CSS
 st.markdown("""
 <style>
