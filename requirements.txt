@@ -8,6 +8,7 @@ matplotlib
 seaborn
 plotly
 openpyxl
+reportlab
 pyreadstat         # for SPSS .sav export (optional but clutch)
 jinja2             # for HTML report templating
 weasyprint         # or pdfkit/wkhtmltopdf for PDF export (choose one)
