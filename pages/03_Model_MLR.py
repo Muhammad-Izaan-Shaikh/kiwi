@@ -55,13 +55,8 @@ if st.button("Fit MLR"):
     y = df[target].copy()
     
     # === DATA TYPE CLEANING (ADD THIS PART) ===
-    st.write("### Data Type Diagnostics")
-    st.write(f"Original y dtype: {y.dtype}")
-    st.write(f"Original X dtypes:\n{X.dtypes}")
-    
     # Clean target variable
     y_clean = pd.to_numeric(y, errors='coerce')
-    st.write(f"After cleaning y dtype: {y_clean.dtype}")
     
     # Clean predictor variables
     X_clean = X.copy()
@@ -69,9 +64,6 @@ if st.button("Fit MLR"):
         original_dtype = X_clean[col].dtype
         if col not in ['gender', 'education']:  # Keep categorical as-is for get_dummies
             X_clean[col] = pd.to_numeric(X_clean[col], errors='coerce')
-            st.write(f"{col}: {original_dtype} -> {X_clean[col].dtype}")
-        else:
-            st.write(f"{col}: Keeping as categorical ({original_dtype})")
     
     # Check for missing values after conversion
     missing_y = y_clean.isnull().sum()
@@ -137,14 +129,21 @@ if "mlr_results" in st.session_state:
     st.subheader("Diagnostics")
     diagnostics = modeling.perform_regression_diagnostics(res)
 
-    st.write("**Normality test:**", diagnostics["normality_test"])
-    st.write("**Heteroskedasticity (BP):**", diagnostics["heteroskedasticity_bp"])
-    st.write("**Heteroskedasticity (White):**", diagnostics["heteroskedasticity_white"])
-    st.write("**Independence test:**", diagnostics["independence_test"])
-    st.write("**Outliers:**", {
-        "High leverage": diagnostics["outliers"]["high_leverage"],
-        "High Cook’s distance": diagnostics["outliers"]["high_cooks"],
-    })
+    # Clean, readable diagnostic output
+    norm_test = diagnostics["normality_test"]
+    st.write("**Normality Test:** Shapiro-Wilk =", f"{norm_test['statistic']:.4f}", f"(p = {norm_test['p_value']:.4f})", "✅ Normal" if bool(norm_test['is_normal']) else "❌ Not Normal")
+    
+    bp_test = diagnostics["heteroskedasticity_bp"]
+    st.write("**Breusch-Pagan Test:**", f"{bp_test['statistic']:.3f}", f"(p = {bp_test['p_value']:.4f})", "✅ Homoskedastic" if bool(bp_test['homoskedastic']) else "❌ Heteroskedastic")
+    
+    white_test = diagnostics["heteroskedasticity_white"]
+    st.write("**White Test:**", f"{white_test['statistic']:.3f}", f"(p = {white_test['p_value']:.4f})", "✅ Homoskedastic" if bool(white_test['homoskedastic']) else "❌ Heteroskedastic")
+    
+    indep_test = diagnostics["independence_test"]
+    st.write("**Durbin-Watson:**", f"{indep_test['statistic']:.4f}", f"({indep_test['interpretation']})")
+
+    outliers = diagnostics["outliers"]
+    st.write("**Outliers:** High leverage =", int(outliers['high_leverage']), "| High Cook's distance =", int(outliers['high_cooks']))
 
     # ===============================================================
     # Plots
