@@ -12,7 +12,12 @@ st.set_page_config(page_title="2 - Explore and Correlate", layout="wide")
 st.title("📊 Exploratory Data Analysis")
 
 # Load data from session (clean preferred, fallback to raw)
-df = st.session_state.get("df") or st.session_state.get("raw_df")
+df = None
+if "df" in st.session_state and st.session_state["df"] is not None:
+    df = st.session_state["df"]
+elif "raw_df" in st.session_state and st.session_state["raw_df"] is not None:
+    df = st.session_state["raw_df"]
+
 if df is None:
     st.warning("No dataset found. Please upload and clean a file on the Import page.")
     st.stop()
