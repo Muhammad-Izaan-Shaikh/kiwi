@@ -178,10 +178,83 @@ if "mlr_results" in st.session_state:
 
     # ===============================================================
     # Interpretation
-    # ===============================================================
-    st.subheader("Interpretation")
+    # ===============================================================    
+    st.subheader("Model Interpretation")
     interpretation = modeling.generate_model_interpretation(res, diagnostics)
-    st.json(interpretation)
+    
+    # Model Fit Section
+    st.write("**Model Fit Quality**")
+    fit_info = interpretation['model_fit']
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric("R-squared", f"{fit_info['r_squared']:.3f}")
+        
+    with col2:
+        st.metric("Adj R-squared", f"{fit_info['adj_r_squared']:.3f}")
+        
+    with col3:
+        r_sq_pct = f"{fit_info['r_squared']:.1%}"
+        st.metric("Variance Explained", r_sq_pct)
+    
+    # Significant Predictors
+    st.write("**Significant Predictors**")
+    sig_predictors = interpretation['significant_predictors']
+    
+    if sig_predictors:
+        for predictor in sig_predictors:
+            coef = predictor['coefficient']
+            p_val = predictor['p_value']
+            direction = predictor['effect_direction']
+            var_name = predictor['variable']
+            
+            # Color code by effect direction
+            if direction == 'positive':
+                st.success(f"{var_name}: +{coef:.4f} (p = {p_val:.4f}) - Positive effect")
+            else:
+                st.error(f"{var_name}: {coef:.4f} (p = {p_val:.4f}) - Negative effect")
+    else:
+        st.info("No statistically significant predictors found")
+    
+    # Warnings and Recommendations
+    warnings = interpretation.get('warnings', [])
+    recommendations = interpretation.get('recommendations', [])
+    
+    if warnings:
+        st.write("**Warnings**")
+        for warning in warnings:
+            st.warning(warning)
+    
+    if recommendations:
+        st.write("**Recommendations**")
+        for rec in recommendations:
+            st.info(rec)
+    
+    # Overall Model Assessment
+    st.write("**Overall Assessment**")
+    r_squared = fit_info['r_squared']
+    
+    if r_squared >= 0.7:
+        st.success("Strong model - explains most variance in the outcome")
+    elif r_squared >= 0.5:
+        st.info("Moderate model - explains reasonable variance")
+    elif r_squared >= 0.3:
+        st.warning("Weak model - limited explanatory power")
+    else:
+        st.error("Very weak model - poor predictive ability")
+    
+    # Sample size assessment
+    n_obs = res['n_obs']
+    n_pred = res['n_predictors']
+    ratio = n_obs / n_pred
+    
+    st.write(f"**Sample Size:** {n_obs} observations, {n_pred} predictors (ratio: {ratio:.1f}:1)")
+    if ratio >= 20:
+        st.success("Adequate sample size")
+    elif ratio >= 10:
+        st.warning("Marginal sample size")
+    else:
+        st.error("Insufficient sample size - results may be unreliable")
 
     # Download model summary (text)
     st.download_button(
