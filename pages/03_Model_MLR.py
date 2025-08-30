@@ -12,7 +12,12 @@ st.set_page_config(page_title="3 - Model MLR", layout="wide")
 st.title("📈 Multiple Linear Regression (MLR)")
 
 # Load cleaned data
-df = st.session_state.get("df") or st.session_state.get("raw_df")
+df = None
+if "df" in st.session_state and st.session_state["df"] is not None:
+    df = st.session_state["df"]
+elif "raw_df" in st.session_state and st.session_state["raw_df"] is not None:
+    df = st.session_state["raw_df"]
+
 if df is None:
     st.warning("No dataset available. Please upload data on the Import page.")
     st.stop()
