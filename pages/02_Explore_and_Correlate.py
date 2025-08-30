@@ -87,14 +87,29 @@ if norm_cols:
 # 3. Correlation Analysis
 # =========================================================
 st.subheader("🔗 Correlation Analysis")
+
+# Let users select variables for correlation analysis
+corr_cols = st.multiselect(
+    "Select variables for correlation analysis",
+    df.select_dtypes(include=["number"]).columns.tolist(),
+    default=df.select_dtypes(include=["number"]).columns.tolist()
+)
+
 method = st.selectbox("Select correlation method", ["pearson", "spearman", "kendall"], index=0)
 
-if st.button("Compute correlation"):
-    with st.spinner("Computing correlation and p-values..."):
-        corr_df, pval_df = eda.compute_correlation_with_pvalues(df, method=method)
-        st.session_state["corr_df"] = corr_df
-        st.session_state["pval_df"] = pval_df
-    st.success("Correlation computed!")
+if corr_cols and len(corr_cols) >= 2:
+    if st.button("Compute correlation"):
+        with st.spinner("Computing correlation and p-values..."):
+            # Only use selected columns for correlation
+            selected_df = df[corr_cols]
+            corr_df, pval_df = eda.compute_correlation_with_pvalues(selected_df, method=method)
+            st.session_state["corr_df"] = corr_df
+            st.session_state["pval_df"] = pval_df
+        st.success("Correlation computed!")
+elif corr_cols and len(corr_cols) < 2:
+    st.warning("Please select at least 2 variables for correlation analysis.")
+else:
+    st.info("Please select variables for correlation analysis.")
 
 if "corr_df" in st.session_state:
     corr_df = st.session_state["corr_df"]
