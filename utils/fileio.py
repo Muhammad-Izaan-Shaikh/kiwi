@@ -36,7 +36,7 @@ def read_file(file, sheet_name: Optional[str] = None, header_row: int = 0,
             # Excel file
             df = pd.read_excel(
                 file,
-                sheet_name=sheet_name,
+                sheet_name=sheet_name if sheet_name else 0,
                 header=header_row,
                 skiprows=skip_rows,
                 na_values=na_markers
