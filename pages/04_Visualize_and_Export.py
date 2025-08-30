@@ -52,13 +52,36 @@ else:
 # Custom scatter
 # ===============================================================
 st.subheader("Custom scatter plot with regression line")
-cols = df.columns.tolist()
-x = st.selectbox("X variable", [None] + cols, index=0)
-y = st.selectbox("Y variable", [None] + cols, index=0)
 
-if x and y:
-    fig = viz.create_scatter_matrix(df, [x, y])
-    st.pyplot(fig)
+# Only show numeric columns for selection
+numeric_cols = df.select_dtypes(include=["number"]).columns.tolist()
+
+if len(numeric_cols) < 2:
+    st.warning("Need at least 2 numeric columns to create a scatter plot.")
+else:
+    x = st.selectbox("X variable", [None] + numeric_cols, index=0)
+    y = st.selectbox("Y variable", [None] + numeric_cols, index=0)
+    
+    if x and y and x != y:
+        try:
+            # Ensure we have valid numeric data
+            valid_data = df[[x, y]].dropna()
+            
+            if len(valid_data) < 2:
+                st.error(f"Not enough valid data points. Found {len(valid_data)} valid pairs, need at least 2.")
+            else:
+                # Check if data is actually numeric
+                if not (pd.api.types.is_numeric_dtype(valid_data[x]) and pd.api.types.is_numeric_dtype(valid_data[y])):
+                    st.error("Selected variables must be numeric for scatter plot.")
+                else:
+                    fig = viz.create_scatter_matrix(df, [x, y])
+                    st.pyplot(fig)
+                    
+        except Exception as e:
+            st.error(f"Error creating scatter plot: {str(e)}")
+            st.info("Please ensure both variables are numeric and contain valid data.")
+    elif x and y and x == y:
+        st.warning("Please select different variables for X and Y axes.")
 
 # ===============================================================
 # Bundle figures as zip (if any were saved in session)
