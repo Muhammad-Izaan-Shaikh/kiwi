@@ -2,9 +2,17 @@
 import streamlit as st
 import pandas as pd
 from utils.ks_test import run_ks_test, export_ks_to_pdf
+from utils.translations import get_text, language_selector, init_language
+
+# Initialize language system
+init_language()
 
 st.set_page_config(page_title="6 - KS Test", layout="wide")
-st.title("📊 Kolmogorov–Smirnov Test")
+
+# Add language selector to sidebar
+language_selector()
+
+st.title(f"📊 {get_text('ks_test_title')}")
 
 # Load data from session (clean preferred, fallback to raw) - same as other pages
 df = None
@@ -14,67 +22,67 @@ elif "raw_df" in st.session_state and st.session_state["raw_df"] is not None:
     df = st.session_state["raw_df"]
 
 if df is None:
-    st.warning("No dataset found. Please upload and clean a file on the Import page.")
+    st.warning(get_text('no_data'))
     st.stop()
 
-st.write(f"**Dataset Info:** {df.shape[0]} rows, {df.shape[1]} columns")
+st.write(get_text('dataset_info', rows=df.shape[0], cols=df.shape[1]))
 
 # Select a numeric column
 numeric_cols = df.select_dtypes(include="number").columns.tolist()
 if not numeric_cols:
-    st.error("No numeric columns found in dataset.")
+    st.error(f"{get_text('error')}: No numeric columns found in dataset.")
     st.stop()
 
-st.subheader("📋 Test Configuration")
-column = st.selectbox("Select a column for KS Test:", numeric_cols)
+st.subheader(f"📋 {get_text('test_configuration')}")
+column = st.selectbox(get_text('select_column_ks'), numeric_cols)
 
 # Select theoretical distribution
-distribution = st.selectbox("Distribution to test against:", ["norm"])  # can expand later
+distribution = st.selectbox(get_text('distribution_test'), ["norm"])  # can expand later
 
 # Show some info about selected column
 if column:
     col_data = df[column].dropna()
     col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("Sample Size", len(col_data))
+        st.metric(get_text('sample_size'), len(col_data))
     with col2:
-        st.metric("Mean", f"{col_data.mean():.4f}")
+        st.metric(get_text('mean'), f"{col_data.mean():.4f}")
     with col3:
-        st.metric("Std Dev", f"{col_data.std():.4f}")
+        st.metric(get_text('std_dev'), f"{col_data.std():.4f}")
 
 # Run test
-st.subheader("🧪 Run Test")
-if st.button("Run KS Test"):
-    with st.spinner("Running Kolmogorov-Smirnov test..."):
+st.subheader(f"🧪 {get_text('run_test')}")
+if st.button(get_text('run_ks_test')):
+    with st.spinner(f"{get_text('run_ks_test')}..."):
         result = run_ks_test(df, column, distribution)
     
     if "error" in result:
         st.error(result["error"])
     else:
-        st.success("✅ KS Test completed")
+        st.success(f"✅ {get_text('ks_completed')}")
         
         # Display results in a professional format
-        st.subheader("📊 Test Results")
+        st.subheader(f"📊 {get_text('test_results')}")
         
         col1, col2 = st.columns(2)
         with col1:
-            st.metric("KS Statistic", f"{result['ks_statistic']:.6f}")
+            st.metric(get_text('ks_statistic'), f"{result['ks_statistic']:.6f}")
         with col2:
-            st.metric("P-value", f"{result['p_value']:.6f}")
+            st.metric(get_text('p_value'), f"{result['p_value']:.6f}")
         
         # Show conclusion with appropriate styling
         conclusion = result['conclusion']
         if "Fail to reject" in conclusion:
-            st.success(f"**Conclusion:** {conclusion}")
+            st.success(f"**{get_text('conclusion')}:** {conclusion}")
         else:
-            st.warning(f"**Conclusion:** {conclusion}")
+            st.warning(f"**{get_text('conclusion')}:** {conclusion}")
         
         # Additional interpretation
         st.info(f"""
-        **Interpretation:**
-        - **H₀ (Null Hypothesis):** The sample follows a {distribution} distribution
-        - **H₁ (Alternative Hypothesis):** The sample does not follow a {distribution} distribution
-        - **Significance Level:** α = 0.05
+        **{get_text('interpretation')}:**
+        - **{get_text('null_hypothesis', dist=distribution)}**
+        - **{get_text('alt_hypothesis', dist=distribution)}**
+        - **{get_text('significance_level')}**
         - **Decision:** {'Accept H₀' if result['p_value'] > 0.05 else 'Reject H₀'}
         """)
         
@@ -84,10 +92,10 @@ if st.button("Run KS Test"):
         st.session_state["ks_results"].append(result)
         
         # Export option
-        st.subheader("📥 Export Results")
+        st.subheader(f"📥 {get_text('export_results')}")
         pdf_buffer = export_ks_to_pdf([result])
         st.download_button(
-            label="📄 Download Results as PDF",
+            label=f"📄 {get_text('download_pdf')}",
             data=pdf_buffer,
             file_name=f"ks_test_{column}_{distribution}.pdf",
             mime="application/pdf",
@@ -95,15 +103,15 @@ if st.button("Run KS Test"):
 
 # Batch testing option
 st.markdown("---")
-st.subheader("🔄 Batch Testing")
-if st.checkbox("Enable batch testing for multiple columns"):
+st.subheader(f"🔄 {get_text('batch_testing')}")
+if st.checkbox(get_text('enable_batch')):
     batch_cols = st.multiselect(
-        "Select columns for batch KS testing:",
+        get_text('select_batch_cols'),
         numeric_cols,
         default=numeric_cols[:3] if len(numeric_cols) >= 3 else numeric_cols
     )
     
-    if batch_cols and st.button("Run Batch KS Tests"):
+    if batch_cols and st.button(get_text('run_batch_tests')):
         batch_results = []
         progress_bar = st.progress(0)
         
@@ -113,18 +121,18 @@ if st.checkbox("Enable batch testing for multiple columns"):
                 batch_results.append(result)
             progress_bar.progress((i + 1) / len(batch_cols))
         
-        st.success(f"✅ Batch testing completed for {len(batch_cols)} columns")
+        st.success(get_text('batch_completed', count=len(batch_cols)))
         
         # Display batch results summary
-        st.subheader("📊 Batch Results Summary")
+        st.subheader(f"📊 {get_text('batch_summary')}")
         summary_data = []
         for res in batch_results:
             if "error" not in res:
                 summary_data.append({
-                    "Column": res["column"],
-                    "KS Statistic": f"{res['ks_statistic']:.6f}",
-                    "P-value": f"{res['p_value']:.6f}",
-                    "Follows Distribution": "Yes" if res['p_value'] > 0.05 else "No"
+                    get_text('column'): res["column"],
+                    get_text('ks_statistic'): f"{res['ks_statistic']:.6f}",
+                    get_text('p_value'): f"{res['p_value']:.6f}",
+                    get_text('follows_distribution'): get_text('yes') if res['p_value'] > 0.05 else get_text('no')
                 })
         
         if summary_data:
@@ -134,7 +142,7 @@ if st.checkbox("Enable batch testing for multiple columns"):
             # Export batch results
             pdf_buffer = export_ks_to_pdf(batch_results)
             st.download_button(
-                label="📄 Download Batch Results as PDF",
+                label=f"📄 {get_text('download_batch_pdf')}",
                 data=pdf_buffer,
                 file_name=f"ks_test_batch_{distribution}.pdf",
                 mime="application/pdf",
