@@ -5,6 +5,7 @@ from pathlib import Path
 import json
 import io
 import textwrap
+from utils.translations import get_text, init_language
 # Hide Streamlit branding and menu
 hide_streamlit_style = """
     <style>
@@ -65,6 +66,11 @@ st.markdown("""
 
 # Initialize session state
 def init_session_state():
+    """Initialize all session state variables"""
+    # Initialize language first
+    if 'language' not in st.session_state:
+        st.session_state['language'] = 'en'
+
     """Initialize all session state variables"""
     defaults = {
         # Data
@@ -270,6 +276,30 @@ with st.sidebar:
     if st.button("🔄 Reset Session"):
         for key in list(st.session_state.keys()):
             del st.session_state[key]
+        st.rerun()
+    
+
+    # Global Language Selector
+    st.markdown("### 🌐 Language")
+    
+    languages = {
+        'en': '🇺🇸 English',
+        'ru': '🇷🇺 Русский'
+    }
+    
+    current_lang = st.session_state.get('language', 'en')
+    
+    selected_lang = st.selectbox(
+        "Select Language:",
+        options=list(languages.keys()),
+        format_func=lambda x: languages[x],
+        index=list(languages.keys()).index(current_lang),
+        key="global_language_selector"
+    )
+    
+    # Update language in session state if changed
+    if selected_lang != current_lang:
+        st.session_state['language'] = selected_lang
         st.rerun()
     
     # Dark/Light theme toggle would be here if supported by Streamlit

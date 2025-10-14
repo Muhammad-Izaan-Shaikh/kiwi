@@ -139,6 +139,69 @@ TRANSLATIONS = {
         'descriptive_stats': 'Описательная статистика',
         'select_variables_desc': 'Выберите переменные для описательной статистики',
         'download_desc_stats': 'Скачать описательную статистику',
+        'preview_data': 'Предварительный просмотр данных',
+        'select_at_least_two_variables': 'Пожалуйста, выберите как минимум 2 переменные для корреляционного анализа.',
+        'please_select_variables': 'Пожалуйста, выберите переменные для корреляционного анализа.',
+        'correlation': 'Корреляция',
+        # MLR Model Page
+        'model_mlr_title': 'Множественная линейная регрессия (MLR)',
+        'dataset_info_short': 'Набор данных: {rows} строк × {cols} столбцов',
+        'choose_dependent_variable': 'Выберите зависимую переменную (Y)',
+        'choose_predictors': 'Выберите предикторы (X)',
+        'please_pick_dependent_variable': 'Пожалуйста, выберите зависимую переменную для продолжения',
+        'select_at_least_one_predictor': 'Выберите хотя бы один предиктор',
+        'model_options': 'Опции модели',
+        'add_intercept': 'Добавить пересечение',
+        'use_robust_se': 'Использовать робастные (HC3) стандартные ошибки',
+        'fit_mlr': 'Подогнать MLR',
+        'missing_values_after_cleaning': 'Пропущенные значения после очистки - Y: {y_missing}, X: {x_missing}',
+        'missing_values_by_column': 'Пропущенные значения по столбцам:',
+        'no_missing_after_cleaning': 'Нет пропущенных значений после очистки данных!',
+        'fitting_model': 'Подгонка модели...',
+        'model_fitted_successfully': 'Модель успешно подогнана!',
+        'model_fitting_failed': 'Подгонка модели неудачна: {error}',
+        'error_details': 'Детали ошибки:',
+        'model_summary': 'Сводка модели',
+        'model_summary_stats': '**Наблюдения:** {n_obs} — **Предикторы:** {n_predictors}\n**R²:** {r_squared:.3f} — **Скор. R²:** {adj_r_squared:.3f}\n**AIC:** {aic:.2f} — **BIC:** {bic:.2f}',
+        'coefficients': 'Коэффициенты',
+        'download_coefficients': 'Скачать коэффициенты (xlsx)',
+        'vif_title': 'Коэффициент раздувания дисперсии (VIF)',
+        'diagnostics': 'Диагностика',
+        'normality_test': 'Тест нормальности',
+        'normal': 'Нормальное',
+        'not_normal': 'Не нормальное',
+        'breusch_pagan_test': 'Тест Брейша-Пагана',
+        'white_test': 'Тест Уайта',
+        'homoskedastic': 'Гомоскедастичный',
+        'heteroskedastic': 'Гетероскедастичный',
+        'durbin_watson': 'Дурбин-Уотсон',
+        'outliers': 'Выбросы',
+        'high_leverage': 'Высокий рычаг',
+        'high_cooks': 'Высокое расстояние Кука',
+        'diagnostic_plots': 'Диагностические графики',
+        'residual_plots_unavailable': 'Графики остатков недоступны: {error}',
+        'leverage_plot_unavailable': 'График рычага недоступен: {error}',
+        'model_interpretation': 'Интерпретация модели',
+        'model_fit_quality': 'Качество подгонки модели',
+        'r_squared': 'R-квадрат',
+        'adj_r_squared': 'Скор. R-квадрат',
+        'variance_explained': 'Объясненная дисперсия',
+        'significant_predictors': 'Значимые предикторы',
+        'positive_effect': 'Положительный эффект',
+        'negative_effect': 'Отрицательный эффект',
+        'no_significant_predictors': 'Статистически значимых предикторов не найдено',
+        'warnings': 'Предупреждения',
+        'recommendations': 'Рекомендации',
+        'overall_assessment': 'Общая оценка',
+        'strong_model': 'Сильная модель - объясняет большую часть дисперсии исхода',
+        'moderate_model': 'Умеренная модель - объясняет разумную дисперсию',
+        'weak_model': 'Слабая модель - ограниченная объяснительная способность',
+        'very_weak_model': 'Очень слабая модель - плохая предсказательная способность',
+        'sample_size_info': '**Размер выборки:** {n_obs} наблюдений, {n_pred} предикторов (соотношение: {ratio:.1f}:1)',
+        'adequate_sample_size': 'Адекватный размер выборки',
+        'marginal_sample_size': 'Пограничный размер выборки',
+        'insufficient_sample_size': 'Недостаточный размер выборки - результаты могут быть ненадежными',
+        'download_model_summary': 'Скачать сводку модели (txt)',
         'normality_tests': 'Тесты нормальности',
         'select_numeric_normality': 'Выберите числовые столбцы для тестирования нормальности',
         'correlation_analysis': 'Корреляционный анализ',
@@ -244,35 +307,15 @@ def get_text(key: str, **kwargs) -> str:
     
     return text
 
-def language_selector():
-    """
-    Create language selector widget in sidebar
-    """
-    st.sidebar.markdown("---")
-    st.sidebar.subheader("🌐 Language / Язык")
-    
-    languages = {
-        'en': '🇺🇸 English',
-        'ru': '🇷🇺 Русский'
-    }
-    
-    current_lang = st.session_state.get('language', 'en')
-    
-    selected_lang = st.sidebar.selectbox(
-        "Select Language:",
-        options=list(languages.keys()),
-        format_func=lambda x: languages[x],
-        index=list(languages.keys()).index(current_lang),
-        key="language_selector"
-    )
-    
-    if selected_lang != current_lang:
-        st.session_state['language'] = selected_lang
-        st.rerun()
-
 def init_language():
     """
     Initialize language setting
     """
     if 'language' not in st.session_state:
         st.session_state['language'] = 'en'
+
+def get_current_language():
+    """
+    Get current language setting
+    """
+    return st.session_state.get('language', 'en')
