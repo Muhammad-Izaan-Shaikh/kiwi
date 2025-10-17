@@ -127,7 +127,88 @@ def app():
                 df = df.fillna(df.median(numeric_only=True))
             elif missing_option == "Fill with mode":
                 df = df.fillna(df.mode().iloc[0])
+
+            # After the cleaning options, add:
+            st.subheader("🔢 Encode Ordinal Variables")
+
+            if st.checkbox("Detect and encode ordinal text columns"):
+                from utils.cleaning import encode_ordinal_columns, detect_ordinal_columns
+                
+                # Auto-detect
+                detected = detect_ordinal_columns(df)
+                
+                if detected:
+                    st.success(f"Found {len(detected)} ordinal columns:")
+                    for col, scale in detected.items():
+                        st.write(f"- {col}: {scale}")
+                    
+                    if st.button("Apply Encoding"):
+                        df_encoded, log = encode_ordinal_columns(df, auto_detect=True)
+                        
+                        st.write("**Encoding Results:**")
+                        st.dataframe(pd.DataFrame(log))
+                        
+                        # Update session state
+                        st.session_state["df"] = df_encoded
+                        df = df_encoded
+                        
+                        st.success("Ordinal encoding applied!")
+                else:
+                    st.info("No ordinal columns detected automatically")
             
+            # ============================================================
+            # CATEGORICAL ENCODING (BINARY & ONE-HOT)
+            # ============================================================
+
+            st.subheader("🏷️ Categorical Encoding")
+
+            if st.checkbox("Encode categorical variables (Gender, Tumor Type, etc.)"):
+                from utils.cleaning import categorize_columns, encode_all_categorical
+                
+                # Show what will be encoded
+                categories = categorize_columns(df)
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Binary Columns", len(categories['binary']))
+                with col2:
+                    st.metric("Multi-Category", len(categories['onehot']))
+                with col3:
+                    st.metric("Ordinal Columns", len(categories['ordinal']))
+                
+                if categories['binary']:
+                    st.write("**Binary columns (will be encoded 0/1):**")
+                    st.write(", ".join(categories['binary']))
+                
+                if categories['onehot']:
+                    st.write("**Multi-category columns (will be one-hot encoded):**")
+                    st.write(", ".join(categories['onehot']))
+                
+                if st.button("Apply All Categorical Encoding"):
+                    df_encoded, logs = encode_all_categorical(df)
+                    
+                    st.success("Categorical encoding complete!")
+                    
+                    # Show summary
+                    summary = logs['summary']
+                    st.write(f"**Encoded {summary['binary_encoded']} binary columns**")
+                    st.write(f"**Encoded {summary['onehot_encoded']} multi-category columns**")
+                    st.write(f"Shape: {summary['original_shape']} → {summary['final_shape']}")
+                    
+                    # Show details
+                    if logs['binary']:
+                        st.write("**Binary encoding details:**")
+                        for item in logs['binary']:
+                            st.write(f"- {item['column']}: {item['mapping']}")
+                    
+                    if logs['onehot']:
+                        st.write("**One-hot encoding details:**")
+                        for item in logs['onehot']:
+                            st.write(f"- {item['column']} → {item['new_columns']}")
+                    
+                    df = df_encoded
+                    st.session_state["df"] = df_encoded
+
             # Save cleaned df into session
             st.session_state["df"] = df
             
